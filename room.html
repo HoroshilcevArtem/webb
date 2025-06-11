@@ -233,7 +233,7 @@
                     else player.play();
                 }
             }
-            setTimeout(() => { isApplyingSync = false; }, 300);
+            setTimeout(() => { isApplyingSync = false; }, 500); // увеличено время защиты
         });
 
         // Отправляем изменения статуса в базу
@@ -271,7 +271,7 @@
         function onYTStateChange(event) {
             if (!ready) return;
             // Синхронизируем только при ручном действии пользователя
-            if (event.data === YT.PlayerState.PLAYING || event.data === YT.PlayerState.PAUSED) {
+            if (!isApplyingSync && (event.data === YT.PlayerState.PLAYING || event.data === YT.PlayerState.PAUSED)) {
                 sendSync();
             }
         }
