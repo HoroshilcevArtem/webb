@@ -99,26 +99,39 @@
         let playerType = null;
         let player = null;
         let ready = false;
+        window.player = null; // Делаем player глобальным
+
+        let ytPlayerReady = false;
+        let ytPlayerInit = false;
+
+        function initYTPlayer() {
+            if (ytPlayerInit) return;
+            ytPlayerInit = true;
+            player = new YT.Player('ytplayer', {
+                events: {
+                    'onReady': function() { 
+                        ready = true; 
+                        ytPlayerReady = true;
+                    },
+                    'onStateChange': onYTStateChange
+                }
+            });
+            window.player = player;
+        }
 
         if (yt.test(url)) {
             playerType = 'youtube';
-            // Загружаем YouTube API
-            if (!window.YT) {
+            // Загружаем YouTube API, если нужно
+            if (!window.YT || !window.YT.Player) {
                 let tag = document.createElement('script');
                 tag.src = "https://www.youtube.com/iframe_api";
                 document.body.appendChild(tag);
+                window.onYouTubeIframeAPIReady = initYTPlayer;
+            } else {
+                initYTPlayer();
             }
-            window.onYouTubeIframeAPIReady = function() {
-                player = new YT.Player('ytplayer', {
-                    events: {
-                        'onReady': function() { ready = true; },
-                        'onStateChange': onYTStateChange
-                    }
-                });
-            };
         } else if (vimeo.test(url)) {
             playerType = 'vimeo';
-            // Загружаем Vimeo API
             let tag = document.createElement('script');
             tag.src = "https://player.vimeo.com/api/player.js";
             document.body.appendChild(tag);
@@ -129,6 +142,7 @@
                 player.on('pause', sendSync);
                 player.on('seeked', sendSync);
                 player.on('timeupdate', sendSync);
+                window.player = player;
             };
         } else if (videoExt.test(url)) {
             playerType = 'html5';
@@ -138,13 +152,35 @@
             player.addEventListener('pause', sendSync);
             player.addEventListener('seeked', sendSync);
             player.addEventListener('timeupdate', sendSync);
+            window.player = player;
         }
+
+        // --- Новый код: периодическая отправка статуса ---
+        let syncInterval = null;
+        function startSyncInterval() {
+            if (syncInterval) clearInterval(syncInterval);
+            syncInterval = setInterval(() => {
+                if (ready) sendSync();
+            }, 1500);
+        }
+        function stopSyncInterval() {
+            if (syncInterval) clearInterval(syncInterval);
+        }
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') startSyncInterval();
+            else stopSyncInterval();
+        });
+        startSyncInterval();
+
+        // --- Sync-защита ---
+        let isApplyingSync = false;
 
         // Получаем и применяем синхронизацию
         db.ref('rooms/' + roomId + '/sync').on('value', async snap => {
             if (!ready) return;
             const sync = snap.val();
             if (!sync) return;
+            isApplyingSync = true;
             if (playerType === 'html5') {
                 if (Math.abs(player.currentTime - sync.time) > 1) player.currentTime = sync.time;
                 if (sync.paused !== player.paused) {
@@ -152,13 +188,14 @@
                     else player.play();
                 }
             } else if (playerType === 'youtube') {
-                player.getCurrentTime && player.getCurrentTime().then ? player.getCurrentTime().then(current => {
-                    if (Math.abs(current - sync.time) > 1) player.seekTo(sync.time, true);
-                    player.getPlayerState && player.getPlayerState() !== undefined && (
-                        (sync.paused && player.getPlayerState() === 1) ? player.pauseVideo() :
-                        (!sync.paused && player.getPlayerState() !== 1) ? player.playVideo() : null
-                    );
-                }) : null;
+                if (player && player.getCurrentTime && player.getPlayerState) {
+                    player.getCurrentTime().then(current => {
+                        if (Math.abs(current - sync.time) > 1) player.seekTo(sync.time, true);
+                        const state = player.getPlayerState();
+                        if (sync.paused && state === 1) player.pauseVideo();
+                        else if (!sync.paused && state !== 1) player.playVideo();
+                    });
+                }
             } else if (playerType === 'vimeo') {
                 player.getCurrentTime().then(current => {
                     if (Math.abs(current - sync.time) > 1) player.setCurrentTime(sync.time);
@@ -170,12 +207,13 @@
                     });
                 });
             }
+            setTimeout(() => { isApplyingSync = false; }, 300);
         });
 
         // Отправляем изменения статуса в базу
         let lastSent = 0;
         function sendSync() {
-            if (!ready) return;
+            if (!ready || isApplyingSync) return;
             const now = Date.now();
             if (now - lastSent < 300) return;
             lastSent = now;
@@ -185,12 +223,14 @@
                     paused: player.paused
                 });
             } else if (playerType === 'youtube') {
-                player.getCurrentTime && player.getCurrentTime().then(current => {
-                    db.ref('rooms/' + roomId + '/sync').set({
-                        time: current,
-                        paused: player.getPlayerState() !== 1 // 1 - playing
+                if (player && player.getCurrentTime && player.getPlayerState) {
+                    player.getCurrentTime().then(current => {
+                        db.ref('rooms/' + roomId + '/sync').set({
+                            time: current,
+                            paused: player.getPlayerState() !== 1
+                        });
                     });
-                });
+                }
             } else if (playerType === 'vimeo') {
                 Promise.all([player.getCurrentTime(), player.getPaused()]).then(([current, paused]) => {
                     db.ref('rooms/' + roomId + '/sync').set({
