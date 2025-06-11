@@ -20,6 +20,7 @@
     <div id="loading">Загрузка комнаты...</div>
     <div id="videoBlock" style="display:none"></div>
     <div id="status"></div>
+    <button id="closeRoomBtn" style="display:none; margin-top:18px;">Закрыть комнату</button>
 </div>
 <script>
     // Firebase init
@@ -55,6 +56,7 @@
         const data = snapshot.val();
         showVideo(data.videoUrl);
         setupSync(roomId, data.videoUrl);
+        document.getElementById('closeRoomBtn').style.display = "inline-block";
     });
 
     function showVideo(url) {
@@ -129,6 +131,18 @@
         video.addEventListener('seeked', sendSync);
         video.addEventListener('timeupdate', sendSync);
     }
+
+    document.getElementById('closeRoomBtn').onclick = function() {
+        if (confirm('Вы уверены, что хотите закрыть комнату?')) {
+            db.ref('rooms/' + roomId).remove().then(() => {
+                document.getElementById('videoBlock').innerHTML = '';
+                document.getElementById('status').textContent = 'Комната закрыта и удалена.';
+                document.getElementById('closeRoomBtn').style.display = "none";
+            }).catch(() => {
+                alert('Ошибка при удалении комнаты.');
+            });
+        }
+    };
 </script>
 </body>
 </html>
