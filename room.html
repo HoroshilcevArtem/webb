@@ -180,30 +180,23 @@
 
         // --- Sync-защита ---
         let isApplyingSync = false;
-        let needUserStart = false; // Флаг для новых пользователей
 
         // Получаем и применяем синхронизацию
-        db.ref('rooms/' + roomId + '/sync').on('value', async snap => {
+        db.ref('rooms/' + roomId + '/sync').on('value', snap => {
             if (!ready) return;
             const sync = snap.val();
             if (!sync) return;
             isApplyingSync = true;
-            if (playerType === 'html5') {
-                if (Math.abs(player.currentTime - sync.time) > 1) player.currentTime = sync.time;
-                if (sync.paused !== player.paused) {
-                    if (sync.paused) player.pause();
-                    else player.play();
-                }
-            } else if (playerType === 'youtube') {
+            if (playerType === 'youtube') {
                 if (player && player.getCurrentTime && player.getPlayerState) {
                     player.getCurrentTime().then(current => {
-                        // Если пользователь только что зашел и sync.paused === false, то ждем клика
+                        // Синхронизируем время, если отличается больше чем на 1 секунду
                         if (Math.abs(current - sync.time) > 1) player.seekTo(sync.time, true);
                         const state = player.getPlayerState();
-                        if (sync.paused && state === 1) player.pauseVideo();
-                        else if (!sync.paused && state !== 1) {
-                            // Если видео не играет, а должно играть — пробуем запустить
-                            // Но если браузер не разрешает — показываем кнопку
+                        // 1 — PLAYING, 2 — PAUSED
+                        if (sync.paused && state !== 2) {
+                            player.pauseVideo();
+                        } else if (!sync.paused && state !== 1) {
                             player.playVideo();
                             setTimeout(() => {
                                 if (player.getPlayerState() !== 1) {
@@ -233,6 +226,12 @@
                         }
                     });
                 });
+            } else if (playerType === 'html5') {
+                if (Math.abs(player.currentTime - sync.time) > 1) player.currentTime = sync.time;
+                if (sync.paused !== player.paused) {
+                    if (sync.paused) player.pause();
+                    else player.play();
+                }
             }
             setTimeout(() => { isApplyingSync = false; }, 300);
         });
@@ -242,22 +241,22 @@
         function sendSync() {
             if (!ready || isApplyingSync) return;
             const now = Date.now();
-            if (now - lastSent < 300) return;
+            if (now - lastSent < 200) return;
             lastSent = now;
-            if (playerType === 'html5') {
-                db.ref('rooms/' + roomId + '/sync').set({
-                    time: player.currentTime,
-                    paused: player.paused
-                });
-            } else if (playerType === 'youtube') {
+            if (playerType === 'youtube') {
                 if (player && player.getCurrentTime && player.getPlayerState) {
                     player.getCurrentTime().then(current => {
                         db.ref('rooms/' + roomId + '/sync').set({
                             time: current,
-                            paused: player.getPlayerState() !== 1
+                            paused: player.getPlayerState() !== 1 // 1 — PLAYING
                         });
                     });
                 }
+            } else if (playerType === 'html5') {
+                db.ref('rooms/' + roomId + '/sync').set({
+                    time: player.currentTime,
+                    paused: player.paused
+                });
             } else if (playerType === 'vimeo') {
                 Promise.all([player.getCurrentTime(), player.getPaused()]).then(([current, paused]) => {
                     db.ref('rooms/' + roomId + '/sync').set({
@@ -271,6 +270,7 @@
         // YouTube события
         function onYTStateChange(event) {
             if (!ready) return;
+            // Синхронизируем только при ручном действии пользователя
             if (event.data === YT.PlayerState.PLAYING || event.data === YT.PlayerState.PAUSED) {
                 sendSync();
             }
