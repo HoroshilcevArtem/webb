@@ -221,6 +221,19 @@
             });
         }
     };
+
+    // Следим за удалением комнаты и закрываем у всех
+    db.ref('rooms/' + roomId).on('value', snap => {
+        if (!snap.exists()) {
+            document.getElementById('videoBlock').innerHTML = '';
+            document.getElementById('status').textContent = 'Комната закрыта и удалена.';
+            document.getElementById('closeRoomBtn').style.display = "none";
+            // Отключаем все обработчики, чтобы нельзя было продолжать смотреть
+            if (window.player && typeof window.player.pause === 'function') {
+                window.player.pause();
+            }
+        }
+    });
 </script>
 </body>
 </html>
