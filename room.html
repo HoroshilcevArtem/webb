@@ -180,6 +180,7 @@
 
         // --- Sync-защита ---
         let isApplyingSync = false;
+        let needUserStart = false; // Флаг для новых пользователей
 
         // Получаем и применяем синхронизацию
         db.ref('rooms/' + roomId + '/sync').on('value', async snap => {
@@ -196,10 +197,30 @@
             } else if (playerType === 'youtube') {
                 if (player && player.getCurrentTime && player.getPlayerState) {
                     player.getCurrentTime().then(current => {
+                        // Если пользователь только что зашел и sync.paused === false, то ждем клика
                         if (Math.abs(current - sync.time) > 1) player.seekTo(sync.time, true);
                         const state = player.getPlayerState();
                         if (sync.paused && state === 1) player.pauseVideo();
-                        else if (!sync.paused && state !== 1) player.playVideo();
+                        else if (!sync.paused && state !== 1) {
+                            // Если видео не играет, а должно играть — пробуем запустить
+                            // Но если браузер не разрешает — показываем кнопку
+                            player.playVideo();
+                            setTimeout(() => {
+                                if (player.getPlayerState() !== 1) {
+                                    if (!document.getElementById('ytStartBtn')) {
+                                        const btn = document.createElement('button');
+                                        btn.id = 'ytStartBtn';
+                                        btn.textContent = 'Начать просмотр';
+                                        btn.style.marginTop = '20px';
+                                        btn.onclick = () => {
+                                            player.playVideo();
+                                            btn.remove();
+                                        };
+                                        document.getElementById('videoBlock').appendChild(btn);
+                                    }
+                                }
+                            }, 1000);
+                        }
                     });
                 }
             } else if (playerType === 'vimeo') {
