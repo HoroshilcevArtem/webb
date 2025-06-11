@@ -71,7 +71,6 @@
             videoId = videoId ? videoId[1] : null;
             if (videoId) {
                 html = `<iframe id="ytplayer" width="720" height="405" src="https://www.youtube.com/embed/${videoId}?enablejsapi=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-                warn = '<div class="warn">Синхронизация времени работает только для mp4/webm/avi/mov. Для YouTube/Vimeo — только совместный просмотр.</div>';
             }
         } else if (vimeo.test(url)) {
             // Vimeo embed
@@ -79,7 +78,6 @@
             videoId = videoId ? videoId[1] : null;
             if (videoId) {
                 html = `<iframe id="vimeoplayer" src="https://player.vimeo.com/video/${videoId}" width="720" height="405" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
-                warn = '<div class="warn">Синхронизация времени работает только для mp4/webm/avi/mov. Для YouTube/Vimeo — только совместный просмотр.</div>';
             }
         } else if (videoExt.test(url)) {
             // Прямой файл
@@ -94,42 +92,122 @@
 
     // --- Синхронизация видео (простая версия) ---
     function setupSync(roomId, url) {
-        // Для YouTube и Vimeo нужна отдельная реализация через их API.
-        // Для mp4/webm реализуем синхронизацию через Firebase.
-        const video = document.getElementById('videoplayer');
-        if (!video) {
-            return;
+        const yt = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
+        const vimeo = /^(https?:\/\/)?(www\.)?vimeo\.com\/.+$/;
+        const videoExt = /\.(mp4|webm|ogg|avi|mov)$/i;
+
+        let playerType = null;
+        let player = null;
+        let ready = false;
+
+        if (yt.test(url)) {
+            playerType = 'youtube';
+            // Загружаем YouTube API
+            if (!window.YT) {
+                let tag = document.createElement('script');
+                tag.src = "https://www.youtube.com/iframe_api";
+                document.body.appendChild(tag);
+            }
+            window.onYouTubeIframeAPIReady = function() {
+                player = new YT.Player('ytplayer', {
+                    events: {
+                        'onReady': function() { ready = true; },
+                        'onStateChange': onYTStateChange
+                    }
+                });
+            };
+        } else if (vimeo.test(url)) {
+            playerType = 'vimeo';
+            // Загружаем Vimeo API
+            let tag = document.createElement('script');
+            tag.src = "https://player.vimeo.com/api/player.js";
+            document.body.appendChild(tag);
+            tag.onload = function() {
+                player = new Vimeo.Player(document.getElementById('vimeoplayer'));
+                player.ready().then(function() { ready = true; });
+                player.on('play', sendSync);
+                player.on('pause', sendSync);
+                player.on('seeked', sendSync);
+                player.on('timeupdate', sendSync);
+            };
+        } else if (videoExt.test(url)) {
+            playerType = 'html5';
+            player = document.getElementById('videoplayer');
+            ready = true;
+            player.addEventListener('play', sendSync);
+            player.addEventListener('pause', sendSync);
+            player.addEventListener('seeked', sendSync);
+            player.addEventListener('timeupdate', sendSync);
         }
 
-        // Слушаем изменения статуса в базе
-        db.ref('rooms/' + roomId + '/sync').on('value', snap => {
+        // Получаем и применяем синхронизацию
+        db.ref('rooms/' + roomId + '/sync').on('value', async snap => {
+            if (!ready) return;
             const sync = snap.val();
             if (!sync) return;
-            if (Math.abs(video.currentTime - sync.time) > 1) {
-                video.currentTime = sync.time;
-            }
-            if (sync.paused !== video.paused) {
-                if (sync.paused) video.pause();
-                else video.play();
+            if (playerType === 'html5') {
+                if (Math.abs(player.currentTime - sync.time) > 1) player.currentTime = sync.time;
+                if (sync.paused !== player.paused) {
+                    if (sync.paused) player.pause();
+                    else player.play();
+                }
+            } else if (playerType === 'youtube') {
+                player.getCurrentTime && player.getCurrentTime().then ? player.getCurrentTime().then(current => {
+                    if (Math.abs(current - sync.time) > 1) player.seekTo(sync.time, true);
+                    player.getPlayerState && player.getPlayerState() !== undefined && (
+                        (sync.paused && player.getPlayerState() === 1) ? player.pauseVideo() :
+                        (!sync.paused && player.getPlayerState() !== 1) ? player.playVideo() : null
+                    );
+                }) : null;
+            } else if (playerType === 'vimeo') {
+                player.getCurrentTime().then(current => {
+                    if (Math.abs(current - sync.time) > 1) player.setCurrentTime(sync.time);
+                    player.getPaused().then(paused => {
+                        if (sync.paused !== paused) {
+                            if (sync.paused) player.pause();
+                            else player.play();
+                        }
+                    });
+                });
             }
         });
 
         // Отправляем изменения статуса в базу
         let lastSent = 0;
         function sendSync() {
-            if (!video) return;
+            if (!ready) return;
             const now = Date.now();
-            if (now - lastSent < 300) return; // не чаще 1 раза в 300мс
+            if (now - lastSent < 300) return;
             lastSent = now;
-            db.ref('rooms/' + roomId + '/sync').set({
-                time: video.currentTime,
-                paused: video.paused
-            });
+            if (playerType === 'html5') {
+                db.ref('rooms/' + roomId + '/sync').set({
+                    time: player.currentTime,
+                    paused: player.paused
+                });
+            } else if (playerType === 'youtube') {
+                player.getCurrentTime && player.getCurrentTime().then(current => {
+                    db.ref('rooms/' + roomId + '/sync').set({
+                        time: current,
+                        paused: player.getPlayerState() !== 1 // 1 - playing
+                    });
+                });
+            } else if (playerType === 'vimeo') {
+                Promise.all([player.getCurrentTime(), player.getPaused()]).then(([current, paused]) => {
+                    db.ref('rooms/' + roomId + '/sync').set({
+                        time: current,
+                        paused: paused
+                    });
+                });
+            }
         }
-        video.addEventListener('play', sendSync);
-        video.addEventListener('pause', sendSync);
-        video.addEventListener('seeked', sendSync);
-        video.addEventListener('timeupdate', sendSync);
+
+        // YouTube события
+        function onYTStateChange(event) {
+            if (!ready) return;
+            if (event.data === YT.PlayerState.PLAYING || event.data === YT.PlayerState.PAUSED) {
+                sendSync();
+            }
+        }
     }
 
     document.getElementById('closeRoomBtn').onclick = function() {
