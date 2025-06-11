@@ -121,14 +121,20 @@
 
         if (yt.test(url)) {
             playerType = 'youtube';
-            // Загружаем YouTube API, если нужно
+            function waitYTReady() {
+                if (window.YT && window.YT.Player) {
+                    initYTPlayer();
+                } else {
+                    setTimeout(waitYTReady, 100);
+                }
+            }
             if (!window.YT || !window.YT.Player) {
                 let tag = document.createElement('script');
                 tag.src = "https://www.youtube.com/iframe_api";
                 document.body.appendChild(tag);
-                window.onYouTubeIframeAPIReady = initYTPlayer;
+                window.onYouTubeIframeAPIReady = waitYTReady;
             } else {
-                initYTPlayer();
+                waitYTReady();
             }
         } else if (vimeo.test(url)) {
             playerType = 'vimeo';

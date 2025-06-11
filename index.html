@@ -175,7 +175,11 @@
                 db.ref('rooms/' + roomId).set({
                     videoUrl: videoUrl,
                     created: Date.now(),
-                    ip: userIp
+                    ip: userIp,
+                    sync: {
+                        time: 0,
+                        paused: true
+                    }
                 }).then(() => {
                     // Только после успешной записи показываем ссылку
                     const roomLink = `${window.location.origin}/webb/room.html?id=${roomId}`;
