@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Онлайн Кинотеатр</title>
+    <style>
+        body {
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #181c24 0%, #232b39 100%);
+            color: #f5f5f5;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        .container {
+            max-width: 420px;
+            margin: 60px auto 0 auto;
+            background: rgba(24, 28, 36, 0.97);
+            border-radius: 14px;
+            box-shadow: 0 8px 32px 0 rgba(0,0,0,0.45);
+            padding: 36px 32px 32px 32px;
+            text-align: center;
+            border: 1px solid #232b39;
+        }
+        h1 {
+            font-size: 2.1rem;
+            font-weight: 700;
+            margin-bottom: 18px;
+            color: #ffb300;
+            text-shadow: 0 2px 12px #000a;
+            letter-spacing: 1px;
+        }
+        p {
+            color: #b0b6c1;
+            margin-bottom: 18px;
+        }
+        input[type="text"] {
+            width: 90%;
+            padding: 13px 14px;
+            margin: 0 0 18px 0;
+            border: 1px solid #2e3647;
+            border-radius: 7px;
+            background: #232b39;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            box-shadow: 0 2px 8px #0002 inset;
+            transition: border 0.2s;
+        }
+        input[type="text"]:focus {
+            border: 1.5px solid #ffb300;
+            background: #232b39;
+        }
+        button {
+            padding: 12px 32px;
+            background: linear-gradient(90deg, #ffb300 0%, #ff6f00 100%);
+            color: #232b39;
+            font-weight: 700;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            box-shadow: 0 4px 16px #ffb30033;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            background: linear-gradient(90deg, #ff6f00 0%, #ffb300 100%);
+            color: #fff;
+            box-shadow: 0 6px 24px #ffb30055;
+        }
+        #roomLink {
+            margin-top: 22px;
+            font-size: 1.05rem;
+        }
+        #roomLink a {
+            color: #ffb300;
+            text-decoration: underline;
+            word-break: break-all;
+            transition: color 0.2s;
+        }
+        #roomLink a:hover {
+            color: #fff;
+        }
+    </style>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBECecihKkUazlGdS6_JvM64NTmypfPNsM",
+            authDomain: "webb-be3c8.firebaseapp.com",
+            databaseURL: "https://webb-be3c8-default-rtdb.firebaseio.com",
+            projectId: "webb-be3c8",
+            storageBucket: "webb-be3c8.firebasestorage.app",
+            messagingSenderId: "461646614505",
+            appId: "1:461646614505:web:bb1d51eb5581d2fe20c578",
+            measurementId: "G-N8WZPPHP6K"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+    </script>
+
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-analytics.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig2 = {
+            apiKey: "AIzaSyBECecihKkUazlGdS6_JvM64NTmypfPNsM",
+            authDomain: "webb-be3c8.firebaseapp.com",
+            databaseURL: "https://webb-be3c8-default-rtdb.firebaseio.com",
+            projectId: "webb-be3c8",
+            storageBucket: "webb-be3c8.firebasestorage.app",
+            messagingSenderId: "461646614505",
+            appId: "1:461646614505:web:bb1d51eb5581d2fe20c578",
+            measurementId: "G-N8WZPPHP6K"
+        };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig2);
+    const analytics = getAnalytics(app);
+  </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Онлайн Кинотеатр</h1>
+        <p>Вставьте ссылку на видео, чтобы создать комнату:</p>
+        <input type="text" id="videoUrl" placeholder="Вставьте ссылку на видео">
+        <br>
+        <button onclick="createRoom()">Создать комнату</button>
+        <p id="roomLink"></p>
+    </div>
+    <script>
+    let userIp = null;
+
+    // Получаем IP пользователя
+    fetch('https://api.ipify.org?format=json')
+        .then(res => res.json())
+        .then(data => userIp = data.ip);
+
+    function isValidVideoUrl(url) {
+        // Проверка на YouTube, Vimeo, mp4, webm, avi
+        const yt = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
+        const vimeo = /^(https?:\/\/)?(www\.)?vimeo\.com\/.+$/;
+        const videoExt = /\.(mp4|webm|ogg|avi|mov)$/i;
+        return yt.test(url) || vimeo.test(url) || videoExt.test(url);
+    }
+
+    function createRoom() {
+        const videoUrl = document.getElementById('videoUrl').value.trim();
+        if (!videoUrl) {
+            alert('Пожалуйста, вставьте ссылку на видео.');
+            return;
+        }
+        if (!isValidVideoUrl(videoUrl)) {
+            alert('Пожалуйста, вставьте корректную ссылку на видео (YouTube, Vimeo или прямой mp4/webm/avi).');
+            return;
+        }
+        if (!userIp) {
+            alert('Ошибка получения IP. Попробуйте позже.');
+            return;
+        }
+        // Проверяем, есть ли уже комната с этим IP
+        db.ref('rooms').orderByChild('ip').equalTo(userIp).once('value', snapshot => {
+            if (snapshot.exists()) {
+                document.getElementById('roomLink').innerHTML = "Вы уже создали комнату!";
+            } else {
+                const roomId = Math.random().toString(36).substr(2, 9);
+                // Показываем "Создание комнаты..."
+                document.getElementById('roomLink').innerHTML = "Создание комнаты...";
+                db.ref('rooms/' + roomId).set({
+                    videoUrl: videoUrl,
+                    created: Date.now(),
+                    ip: userIp
+                }).then(() => {
+                    // Только после успешной записи показываем ссылку
+                    const roomLink = `${window.location.origin}/room.html?id=${roomId}`;
+                    document.getElementById('roomLink').innerHTML = `Ваша комната: <a href="${roomLink}" target="_blank">${roomLink}</a>`;
+                }).catch(() => {
+                    document.getElementById('roomLink').innerHTML = "Ошибка создания комнаты. Попробуйте ещё раз.";
+                });
+            }
+        });
+    }
+    </script>
+</body>
+</html>

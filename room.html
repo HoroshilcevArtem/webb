@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Комната просмотра</title>
+    <style>
+        body { background: #181c24; color: #fff; font-family: 'Segoe UI', Arial, sans-serif; }
+        .container { max-width: 800px; margin: 40px auto; background: #232b39; border-radius: 12px; padding: 32px; }
+        #videoBlock { margin-top: 24px; }
+        #status { margin-top: 16px; color: #ffb300; }
+        #loading { color: #ffb300; font-size: 1.2em; margin-top: 32px; }
+        .warn { color: #ff6f00; margin-top: 18px; }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</head>
+<body>
+<div class="container">
+    <h2>Онлайн просмотр</h2>
+    <div id="loading">Загрузка комнаты...</div>
+    <div id="videoBlock" style="display:none"></div>
+    <div id="status"></div>
+</div>
+<script>
+    // Firebase init
+    const firebaseConfig = {
+        apiKey: "AIzaSyBECecihKkUazlGdS6_JvM64NTmypfPNsM",
+        authDomain: "webb-be3c8.firebaseapp.com",
+        databaseURL: "https://webb-be3c8-default-rtdb.firebaseio.com",
+        projectId: "webb-be3c8",
+        storageBucket: "webb-be3c8.firebasestorage.app",
+        messagingSenderId: "461646614505",
+        appId: "1:461646614505:web:bb1d51eb5581d2fe20c578",
+        measurementId: "G-N8WZPPHP6K"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Получаем roomId из URL
+    const params = new URLSearchParams(window.location.search);
+    const roomId = params.get('id');
+    if (!roomId) {
+        document.getElementById('loading').style.display = "none";
+        document.getElementById('status').textContent = "Комната не найдена!";
+        throw new Error("No room id");
+    }
+
+    // Получаем данные комнаты
+    db.ref('rooms/' + roomId).once('value').then(snapshot => {
+        document.getElementById('loading').style.display = "none";
+        if (!snapshot.exists()) {
+            document.getElementById('status').textContent = "Комната не найдена!";
+            return;
+        }
+        const data = snapshot.val();
+        showVideo(data.videoUrl);
+        setupSync(roomId, data.videoUrl);
+    });
+
+    function showVideo(url) {
+        const yt = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
+        const vimeo = /^(https?:\/\/)?(www\.)?vimeo\.com\/.+$/;
+        const videoExt = /\.(mp4|webm|ogg|avi|mov)$/i;
+        let html = '';
+        let warn = '';
+        if (yt.test(url)) {
+            // YouTube embed
+            let videoId = url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
+            videoId = videoId ? videoId[1] : null;
+            if (videoId) {
+                html = `<iframe id="ytplayer" width="720" height="405" src="https://www.youtube.com/embed/${videoId}?enablejsapi=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+                warn = '<div class="warn">Синхронизация времени работает только для mp4/webm/avi/mov. Для YouTube/Vimeo — только совместный просмотр.</div>';
+            }
+        } else if (vimeo.test(url)) {
+            // Vimeo embed
+            let videoId = url.match(/vimeo\.com\/(\d+)/);
+            videoId = videoId ? videoId[1] : null;
+            if (videoId) {
+                html = `<iframe id="vimeoplayer" src="https://player.vimeo.com/video/${videoId}" width="720" height="405" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+                warn = '<div class="warn">Синхронизация времени работает только для mp4/webm/avi/mov. Для YouTube/Vimeo — только совместный просмотр.</div>';
+            }
+        } else if (videoExt.test(url)) {
+            // Прямой файл
+            html = `<video id="videoplayer" width="720" height="405" controls src="${url}"></video>`;
+        } else {
+            html = "Неподдерживаемый формат видео.";
+        }
+        const block = document.getElementById('videoBlock');
+        block.innerHTML = html + warn;
+        block.style.display = "block";
+    }
+
+    // --- Синхронизация видео (простая версия) ---
+    function setupSync(roomId, url) {
+        // Для YouTube и Vimeo нужна отдельная реализация через их API.
+        // Для mp4/webm реализуем синхронизацию через Firebase.
+        const video = document.getElementById('videoplayer');
+        if (!video) {
+            return;
+        }
+
+        // Слушаем изменения статуса в базе
+        db.ref('rooms/' + roomId + '/sync').on('value', snap => {
+            const sync = snap.val();
+            if (!sync) return;
+            if (Math.abs(video.currentTime - sync.time) > 1) {
+                video.currentTime = sync.time;
+            }
+            if (sync.paused !== video.paused) {
+                if (sync.paused) video.pause();
+                else video.play();
+            }
+        });
+
+        // Отправляем изменения статуса в базу
+        let lastSent = 0;
+        function sendSync() {
+            if (!video) return;
+            const now = Date.now();
+            if (now - lastSent < 300) return; // не чаще 1 раза в 300мс
+            lastSent = now;
+            db.ref('rooms/' + roomId + '/sync').set({
+                time: video.currentTime,
+                paused: video.paused
+            });
+        }
+        video.addEventListener('play', sendSync);
+        video.addEventListener('pause', sendSync);
+        video.addEventListener('seeked', sendSync);
+        video.addEventListener('timeupdate', sendSync);
+    }
+</script>
+</body>
+</html>
