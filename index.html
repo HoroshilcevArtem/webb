@@ -178,7 +178,7 @@
                     ip: userIp
                 }).then(() => {
                     // Только после успешной записи показываем ссылку
-                    const roomLink = `${window.location.origin}/room.html?id=${roomId}`;
+                    const roomLink = `${window.location.origin}/webb/room.html?id=${roomId}`;
                     document.getElementById('roomLink').innerHTML = `Ваша комната: <a href="${roomLink}" target="_blank">${roomLink}</a>`;
                 }).catch(() => {
                     document.getElementById('roomLink').innerHTML = "Ошибка создания комнаты. Попробуйте ещё раз.";
