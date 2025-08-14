@@ -1,0 +1,88 @@
+body {
+    background-image: url(../assets/Kazino/main/fon.png);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    backdrop-filter: blur(10px);
+    color: #0f0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    position: relative; /* Добавьте это, чтобы меню было внутри body */
+    transition: opacity 0.5s ease-in-out;
+    opacity: 0; /* Начальное состояние для плавного появления */
+}
+
+.hero {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh;
+    color: #fff;
+    text-align: center;
+    width: 100%;
+}
+
+.hero table {
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 2rem;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 600px;
+}
+
+.hero h2 {
+    margin: 0;
+    font-size: 2.5rem;
+}
+
+.hero p {
+    font-size: 1.2rem;
+}
+
+.hero p input {
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.hero img {
+    max-width: 200px;
+    height: auto;
+    border-radius: 5px;
+    gap: 50px;
+    cursor: pointer;
+}
+
+.hero-img {
+    max-width: 200px;
+    height: auto;
+    border-radius: 5px;
+    margin-right: 20px; /* Добавьте это для расстояния между изображениями */
+}
+
+.hero-img:last-child {
+    margin-right: 0; /* Убирает отступ у последнего изображения */
+}
+
+.fade-out {
+    animation: fadeOut 0.5s forwards;
+}
+
+body.fade-out {
+    opacity: 0;
+}
+
+body.fade-in {
+    opacity: 1;
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}

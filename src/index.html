@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Игровой Автомат</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <main>
+        <section class="hero">
+            <div class="container">
+                <div class="slot-machine">
+                    <div class="reel"><img src="assets/Kazino/none.png" alt="Ошибка"></div>
+                    <div class="reel"><img src="assets/Kazino/none.png" alt="Ошибка"></div>
+                    <div class="reel"><img src="assets/Kazino/none.png" alt="Ошибка"></div>
+                </div>
+                <button id="spin-button">Крутить</button>
+                <section class="menu centered-menu">
+                    <table>
+                        <tr>
+                            <td><button id="slot-machine-button">Слот-машина</button></td>
+                            <td><button id="log-button">Лог</button></td>
+                            <td><button id="exit-button">Выход</button></td>
+                        </tr>
+                    </table>
+                </section>
+            </div>
+        </section>
+
+        <section class="log hidden">
+            <div class="log-container">
+                <button id="close-log-button" class="close-button">×</button>
+                <table id="log-table">
+                    <!-- Логи выигрышей будут добавляться здесь -->
+                </table>
+            </div>
+        </section>
+
+        <section class="slot-list hidden">
+            <div class="slot-hidden">
+                <button id="close-slot-list-button" class="close-slot-button">×</button>
+            </div>
+        </section>
+
+    </main>
+    <script src="js/script.js"></script>
+</body>
+</html>

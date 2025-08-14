@@ -1,0 +1,307 @@
+body {
+    font-family: 'Courier New', Courier, monospace;
+    background-image: url('../assets/Kazino/bot/bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: #0f0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    transition: opacity 0.5s ease-in-out;
+    opacity: 0; /* Начальное состояние для плавного появления */
+}
+
+body.fade-out {
+    opacity: 0;
+}
+
+body.fade-in {
+    opacity: 1;
+}
+
+.hero {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh;
+    color: #fff;
+    text-align: center;
+    width: 100%;
+}
+
+.hero table {
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 2rem;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 600px;
+}
+
+.hero h2 {
+    margin: 0;
+    font-size: 2.5rem;
+}
+
+.hero p {
+    font-size: 1.2rem;
+}
+
+.hero p input {
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.slot-machine {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.list {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.reel {
+    width: 150px;
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #0f0;
+    border-radius: 10px;
+    margin: 0 10px;
+    background-color: #000;
+    overflow: hidden;
+    position: relative;
+}
+
+.reel img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    position: absolute;
+    top: 0;
+    transition: opacity 0.2s ease-in-out; /* Добавьте плавный переход */
+}
+
+.spinning img {
+    animation: changeImage 0.2s linear infinite; /* Увеличьте время анимации */
+}
+
+@keyframes spin {
+    0% { top: -100%; }
+    100% { top: 100%; }
+}
+
+@keyframes slowSpin {
+    0% { top: -100%; }
+    100% { top: 0; }
+}
+
+@keyframes changeImage {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #0f0;
+    color: #000;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Courier New', Courier, monospace; /* Добавьте стиль текста */
+}
+
+button:hover {
+    background-color: #0a0;
+}
+
+.centered-menu {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 1.5rem; /* Увеличьте padding */
+}
+
+.centered-menu table {
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 1.5rem; /* Увеличьте padding */
+    border-radius: 10px;
+}
+
+.centered-menu button {
+    margin: 0 15px; /* Увеличьте margin */
+    padding: 12px 24px; /* Увеличьте padding */
+    transition: background-color 0.3s ease;
+}
+
+.centered-menu button:hover {
+    background-color: #0a0;
+}
+
+.container.hidden {
+    display: none;
+}
+
+.log {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    height: 80vh;
+    width: 80vw;
+    color: #fff;
+    text-align: center;
+    z-index: 1000;
+}
+
+.log.hidden {
+    display: none;
+}
+
+.slot-list {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    height: 80vh;
+    width: 80vw;
+    color: #fff;
+    text-align: center;
+    z-index: 1000;
+}
+
+.slot-list.hidden {
+    display: none;
+}
+
+.slot-hidden {
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 2rem;
+    border-radius: 10px;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.slot-hidden button {
+    margin: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.slot-hidden img {
+    width: 100px; /* Увеличьте размер */
+    height: 100px; /* Увеличьте размер */
+}
+
+.slot-hidden .close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.slot-hidden .close-slot-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1001; /* Убедитесь, что кнопка находится выше других элементов */
+}
+
+.log-container {
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 2rem;
+    border-radius: 10px;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.log-container table {
+    width: 100%;
+    margin: 0 auto;
+}
+
+.log-container .reel {
+    width: 50px;
+    height: 50px;
+    margin: 0 5px;
+}
+
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+
+/* Медиа-запросы для адаптивного дизайна */
+@media (max-width: 768px) {
+    .reel {
+        width: 100px;
+        height: 100px;
+        font-size: 3em;
+    }
+
+    .hero table {
+        padding: 1rem;
+    }
+
+    button {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .reel {
+        width: 80px;
+        height: 80px;
+        font-size: 2.5em;
+    }
+
+    .hero table {
+        padding: 0.5rem;
+    }
+
+    button {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+}
