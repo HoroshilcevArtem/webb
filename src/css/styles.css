@@ -340,3 +340,30 @@ button:hover {
         font-size: 12px;
     }
 }
+
+/* Top balance panel */
+#top-panel{
+    position:fixed;
+    top:12px;
+    left:50%;
+    transform:translateX(-50%);
+    background:rgba(0,0,0,0.45); /* полупрозрачный фон */
+    color:#fff;
+    border-radius:10px;
+    padding:8px 12px;
+    z-index:1200;
+    box-shadow:0 6px 20px rgba(0,0,0,0.4);
+    backdrop-filter: blur(6px);
+    display:flex;
+    align-items:center;
+    gap:12px;
+    min-width:220px;
+}
+#top-panel .panel-inner{display:flex;align-items:center;gap:10px}
+.balance-label{font-size:14px;color:#cfc}
+.balance-value{font-weight:700;font-size:16px;color:#fff;min-width:70px;text-align:right}
+#balance-refresh{padding:6px 10px;font-size:13px}
+
+@media (max-width:600px){
+    #top-panel{left:8px;transform:none;right:8px;top:8px;min-width:unset}
+}

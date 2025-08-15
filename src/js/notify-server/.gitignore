@@ -1,0 +1,8 @@
+# Do not commit runtime data
+/data/
+
+# Node modules
+node_modules/
+
+# env files
+.env
