@@ -21,15 +21,24 @@
     </div>
 
     <main>
-        <div class="auth-box">
-            <h2>Войти или зарегистрироваться</h2>
-            <input id="username" placeholder="Логин (email или ник)" />
-            <input id="password" placeholder="Пароль" type="password" />
-            <div class="auth-actions">
-                <button id="login">Войти</button>
-                <button id="register">Зарегистрироваться</button>
+        <div class="auth-box" id="auth-box">
+            <div class="checkmark" id="checkmark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path class="tick" d="M4 12l5 5L20 6" />
+                </svg>
             </div>
-            <div class="msg" id="msg"></div>
+            <h2>Войти или зарегистрироваться</h2>
+            <div class="field">
+                <input id="username" placeholder="Логин (email или ник)" autocomplete="username" />
+            </div>
+            <div class="field">
+                <input id="password" placeholder="Пароль" type="password" autocomplete="current-password" />
+            </div>
+            <div class="auth-actions">
+                <button id="login" class="primary">Войти</button>
+                <button id="register" class="secondary">Зарегистрироваться</button>
+            </div>
+            <div class="msg" id="msg"><span id="msg-text"></span></div>
         </div>
     </main>
 
