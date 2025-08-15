@@ -2,10 +2,19 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const cors = require('cors');
 const bodyParser = require('body-parser');
 
 const app = express();
+// allow cross-origin requests from browser pages (local files / GitHub Pages)
+app.use(cors());
 app.use(bodyParser.json());
+
+// simple request logger
+app.use((req, res, next) => {
+  console.log(new Date().toISOString(), req.method, req.url);
+  next();
+});
 
 const DATA_DIR = path.join(__dirname, 'data');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
