@@ -58,5 +58,17 @@ app.get('/me', (req, res) => {
   res.json({ id: user.id, username: user.username, balance: user.balance });
 });
 
+// simple root endpoint to verify server is alive
+app.get('/', (req, res) => {
+  res.send('Notify-server running');
+});
+
+// developer-friendly /notify endpoint (shows user count and id/balance list)
+app.get('/notify', (req, res) => {
+  const db = readUsers();
+  const users = (db.users || []).map(u => ({ id: u.id, balance: u.balance }));
+  res.json({ ok: true, usersCount: users.length, users });
+});
+
 const port = process.env.PORT || 3001;
 app.listen(port, () => console.log('Notify-server listening on', port));
