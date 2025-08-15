@@ -8,7 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const heroSection = document.querySelector('.hero');
     const logTable = document.getElementById('log-table');
     const container = document.querySelector('.container');
-    const buttons = document.querySelectorAll('button');
+    // Выбираем все кнопки, кроме навигационных стрелок и кнопок закрытия модалок,
+    // чтобы они не блокировались во время анимации слотов.
+    const buttons = document.querySelectorAll('button:not(.side-arrow-btn):not(.close-button):not(.close-slot-button)');
     let isSpinning = false;
     let winLog = [];
 
