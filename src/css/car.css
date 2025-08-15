@@ -1,22 +1,16 @@
 body {
-    font-family: 'Courier New', Courier, monospace;
-    background-image: url('../assets/Kazino/bot/bg.jpg');
+    background: url('../assets/Kazino/car/1.gif') no-repeat center center fixed;
     background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    color: #0f0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    min-height: 100vh;
+    width: 100vw;
     height: 100vh;
     margin: 0;
-    transition: opacity 0.5s ease-in-out;
-    opacity: 0; /* Начальное состояние для плавного появления */
+    padding: 0;
 }
 
 body.fade-out {
     opacity: 0;
+    transition: opacity 0.5s;
 }
 
 body.fade-in {
@@ -106,6 +100,11 @@ body.fade-in {
 @keyframes changeImage {
     0% { opacity: 0; }
     100% { opacity: 1; }
+}
+
+@keyframes bg-move {
+    0% { background-position-x: 0; }
+    100% { background-position-x: -1000px; }
 }
 
 button {

@@ -1,0 +1,82 @@
+/* Универсальные адаптивные стили для всех страниц */
+:root{
+    --btn-bg:#0f0;
+    --btn-color:#000;
+    --btn-radius:8px;
+    --btn-padding:12px 20px;
+    --btn-font-size:16px;
+    --page-max-width:1100px;
+}
+
+/* Сброс для единообразия */
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;padding:0}
+body{font-family: 'Courier New', Courier, monospace;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+
+/* Фон — единый подход: если есть анимация в конкретном css, она будет применяться, но для большинства страниц применим единый fallback */
+.site-bg {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    width:100%;
+    min-height:100vh;
+}
+
+/* Стандартизированные кнопки */
+button, .btn {
+    background:var(--btn-bg);
+    color:var(--btn-color);
+    border:none;
+    border-radius:var(--btn-radius);
+    padding:var(--btn-padding);
+    font-size:var(--btn-font-size);
+    cursor:pointer;
+    transition:transform .08s ease, filter .12s ease;
+}
+button:active, .btn:active{transform:translateY(1px)}
+button:focus{outline:2px solid rgba(0,0,0,.2)}
+
+/* Универсальное расположение меню внизу */
+.centered-menu{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:999;padding:8px}
+.centered-menu table{background:rgba(0,0,0,.5);padding:10px;border-radius:10px}
+
+/* Слот-машина и катушки */
+.slot-machine{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap}
+.reel{display:flex;align-items:center;justify-content:center;border-radius:10px;background:#000;border:2px solid #0f0;overflow:hidden}
+.reel img{width:100%;height:100%;object-fit:contain}
+
+/* Контейнер страницы */
+.container{width:100%;max-width:var(--page-max-width);padding:16px}
+
+/* Стрелки навигации */
+.side-arrow-btn{position:fixed;right:16px;top:50%;transform:translateY(-50%);z-index:1000;background:#fff;border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:1.6rem}
+
+/* Модальные и списки слотов */
+.log,.slot-list{display:flex;align-items:center;justify-content:center}
+.log-container,.slot-hidden{max-width:100%;width:90vw;padding:16px}
+
+/* Адаптация на разных разрешениях */
+@media (max-width:1200px){:root{--page-max-width:900px;--btn-font-size:15px}}
+@media (max-width:900px){:root{--page-max-width:700px;--btn-font-size:15px;--btn-padding:10px 16px}
+    .reel{width:110px;height:110px}
+    .hero{padding:10px}
+}
+@media (max-width:600px){:root{--page-max-width:420px;--btn-font-size:14px;--btn-padding:8px 12px;--btn-radius:6px}
+    .reel{width:90px;height:90px}
+    .side-arrow-btn{right:8px;width:40px;height:40px;font-size:1.2rem}
+    .centered-menu{bottom:12px}
+}
+@media (max-width:400px){:root{--btn-font-size:13px;--btn-padding:6px 10px}
+    .reel{width:72px;height:72px}
+}
+
+/* Небольшая утилита для центровки main */
+main{flex:1;display:flex;flex-direction:column;align-items:center;width:100%}
+
+/* Если хотите, можно добавить body класс на конкретной странице для выбора фоновой картинки. Например: <body class="bg-main"> */
+.bg-main{background-image:url('../assets/Kazino/main/fon.png')}
+.bg-car{background-image:url('../assets/Kazino/car/1.gif');background-size:cover;background-attachment:fixed}
+.bg-bot{background-image:url('../assets/Kazino/bot/bg.jpg')}
+
+/* Минимальная доступность: крупные кнопки на сенсорных устройствах */
+@media (hover:none){button{padding:14px 22px}}

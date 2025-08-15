@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Игровой Автомат</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <title>Автомобили</title>
+    <link rel="stylesheet" href="css/car.css">
     <link rel="stylesheet" href="css/responsive.css">
 </head>
-<body class="bg-bot">
+<body class="bg-car">
     <main>
         <section class="hero">
             <div class="container">
+                <button class="side-arrow-btn" aria-label="Прокрутить влево" style="float:left;margin-right:20px;">&#8592;</button>
                 <div class="slot-machine">
-                    <div class="reel"><img src="assets/Kazino/none.png" alt="Ошибка"></div>
-                    <div class="reel"><img src="assets/Kazino/none.png" alt="Ошибка"></div>
-                    <div class="reel"><img src="assets/Kazino/none.png" alt="Ошибка"></div>
+                    <div class="reel"><img src="assets/Car/white.png" alt="Ошибка"></div>
+                    <div class="reel"><img src="assets/Car/white.png" alt="Ошибка"></div>
+                    <div class="reel"><img src="assets/Car/white.png" alt="Ошибка"></div>
                 </div>
                 <button id="spin-button">Крутить</button>
-                <button class="side-arrow-btn" aria-label="Прокрутить вправо">&#8594;</button>
                 <section class="menu centered-menu">
                     <table>
                         <tr>
@@ -48,8 +48,11 @@
     </main>
     <script src="js/script.js"></script>
     <script>
-        document.querySelector('.side-arrow-btn').addEventListener('click', () => {
-            window.location.href = 'car.html';
+        document.querySelector('.side-arrow-btn').addEventListener('click', function() {
+            document.body.classList.add('fade-out');
+            setTimeout(function() {
+                window.location.href = 'index.html';
+            }, 500);
         });
     </script>
 </body>
