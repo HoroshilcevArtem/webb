@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Вход / Регистрация</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .auth-box { max-width: 420px; margin: 40px auto; background: rgba(0,0,0,0.7); padding: 20px; border-radius: 8px; color: #fff; }
+        .auth-box input { width: 100%; padding: 8px; margin: 8px 0; border-radius:4px; border:1px solid #333; }
+        .auth-actions { display:flex; gap:8px; justify-content:space-between; }
+        .msg { margin-top:8px; color:#ffb86b; }
+    </style>
+</head>
+<body>
+    <div class="top-panel">
+        <div class="top-panel-inner">
+            <div class="balance-area"><span>Авторизация</span></div>
+            <div class="auth-area"><a href="index.html">На главную</a></div>
+        </div>
+    </div>
+
+    <main>
+        <div class="auth-box">
+            <h2>Войти или зарегистрироваться</h2>
+            <input id="username" placeholder="Логин (email или ник)" />
+            <input id="password" placeholder="Пароль" type="password" />
+            <div class="auth-actions">
+                <button id="login">Войти</button>
+                <button id="register">Зарегистрироваться</button>
+            </div>
+            <div class="msg" id="msg"></div>
+        </div>
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded',()=>{
+            // simple focus
+            document.getElementById('username').focus();
+        });
+    </script>
+</body>
+</html>

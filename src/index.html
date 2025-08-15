@@ -8,12 +8,17 @@
     <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body class="bg-bot">
-    <!-- Top balance panel -->
-    <div id="top-panel" aria-live="polite">
-        <div class="panel-inner">
-            <div class="balance-label">Баланс:</div>
-            <div id="balance-value" class="balance-value">—</div>
-            <button id="balance-refresh" class="btn">Обновить</button>
+    <!-- Top semi-transparent panel: shows user id and balance, and link to auth -->
+    <div class="top-panel">
+        <div class="top-panel-inner">
+            <div class="balance-area">
+                <span id="user-id">ID: —</span>
+                <span id="user-balance">Баланс: —</span>
+            </div>
+            <div class="auth-area">
+                <a id="auth-link" href="auth.html">Войти / Регистрация</a>
+                <button id="logout-btn" class="hidden">Выйти</button>
+            </div>
         </div>
     </div>
     <main>
@@ -55,6 +60,48 @@
 
     </main>
     <script src="js/script.js"></script>
+    <script>
+        // Load current user info from token (if any) and update top panel
+        (function(){
+            const authToken = localStorage.getItem('authToken');
+            const userIdEl = document.getElementById('user-id');
+            const userBalanceEl = document.getElementById('user-balance');
+            const authLink = document.getElementById('auth-link');
+            const logoutBtn = document.getElementById('logout-btn');
+
+            function setLoggedOut() {
+                userIdEl.textContent = 'ID: —';
+                userBalanceEl.textContent = 'Баланс: —';
+                authLink.classList.remove('hidden');
+                logoutBtn.classList.add('hidden');
+            }
+
+            if (!authToken) {
+                setLoggedOut();
+                return;
+            }
+
+            fetch('http://localhost:3001/me', {
+                headers: { 'Authorization': 'Bearer ' + authToken }
+            }).then(r => r.json()).then(data => {
+                if (data && data.id) {
+                    userIdEl.textContent = 'ID: ' + data.id;
+                    userBalanceEl.textContent = 'Баланс: ' + (data.balance ?? 0);
+                    authLink.classList.add('hidden');
+                    logoutBtn.classList.remove('hidden');
+                } else {
+                    setLoggedOut();
+                }
+            }).catch(() => setLoggedOut());
+
+            logoutBtn.addEventListener('click', () => {
+                localStorage.removeItem('authToken');
+                setLoggedOut();
+                // reload to update any UI
+                window.location.reload();
+            });
+        })();
+    </script>
     <script>
         document.querySelector('.side-arrow-btn').addEventListener('click', () => {
             window.location.href = 'car.html';
